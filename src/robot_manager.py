@@ -15,7 +15,7 @@ class RobotManager:
 
         rospy.loginfo("Robot manager : started.")
 
-        rospy.Subscriber("syscommand", String, self._cmd_callback)
+        rospy.Subscriber("robot_command", String, self._cmd_callback)
 
         # spin() simply keeps python from exiting until this node is stopped
         rospy.spin()
