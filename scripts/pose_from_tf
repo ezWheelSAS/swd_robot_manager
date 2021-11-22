@@ -1,0 +1,50 @@
+#!/usr/bin/env python3
+
+import rospy
+import tf
+import geometry_msgs.msg
+
+
+class PoseFromTF:
+    def __init__(self):
+        rospy.init_node("pose_from_tf")
+
+        # Reading parameters, with default values
+        base_frame = rospy.get_param("base_frame", "base_link")
+        ref_frame = rospy.get_param("ref_frame", "map")
+        topic_name = rospy.get_param("topic_name", "/pose_from_tf")
+        pub_rate = rospy.get_param("publish_rate", 30.0)
+        listener = tf.TransformListener()
+
+        rospy.loginfo(f"Publishing poses to '{topic_name}' at {pub_rate}Hz using TFs from '{ref_frame}' to '{base_frame}'")
+
+        pose_pub = rospy.Publisher(topic_name, geometry_msgs.msg.PoseStamped, queue_size=1)
+        pose = geometry_msgs.msg.PoseStamped()
+        rate = rospy.Rate(pub_rate)
+
+        while not rospy.is_shutdown():
+            # While running, we try to get the lastest available transform
+            # between ref_frame and base_frame
+            try:
+                (t, r) = listener.lookupTransform(ref_frame, base_frame, rospy.Time(0))
+            except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
+                continue
+
+            # Fill the pose message to be published
+            pose.header.stamp = rospy.Time.now()
+            pose.header.frame_id = ref_frame
+            pose.pose.position.x = t[0]
+            pose.pose.position.y = t[1]
+            pose.pose.position.z = t[2]
+            pose.pose.orientation.x = r[0]
+            pose.pose.orientation.y = r[1]
+            pose.pose.orientation.z = r[2]
+            pose.pose.orientation.w = r[3]
+
+            pose_pub.publish(pose)
+
+            rate.sleep()
+
+
+if __name__ == "__main__":
+    pft = PoseFromTF()
