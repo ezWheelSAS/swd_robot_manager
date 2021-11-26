@@ -162,6 +162,7 @@ include_directories(
 catkin_install_python(PROGRAMS
   scripts/robot_manager
   scripts/path_publisher
+  scripts/pose_from_tf
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
